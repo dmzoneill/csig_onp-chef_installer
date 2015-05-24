@@ -1,0 +1,6 @@
+input/server/downloads/**
+input/client/downloads/**
+input/solo/downloads/**
+output/**
+backup/**
+*~
