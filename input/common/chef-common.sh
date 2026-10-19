@@ -31,8 +31,10 @@ preparelog() {
 # DESCRIPTION: logs to file
 #======================================================================================
 log() {
-	# shellcheck disable=SC2086 # Record only the first word, as the original log helper did.
-	echo $1 >>"${LOGFILE}"
+	local -a words
+	# Field-split like the original unquoted echo, without globbing the message.
+	read -r -a words <<<"${1}"
+	echo "${words[*]}" >>"${LOGFILE}"
 }
 
 #=== FUNCTION =========================================================================
@@ -40,10 +42,16 @@ log() {
 # DESCRIPTION: logs to file and prints to screen
 #======================================================================================
 logverbose() {
-	# shellcheck disable=SC2086 # Preserve original word-splitting for screen and log output.
-	echo $1
-	# shellcheck disable=SC2086
-	log $1
+	local -a words
+	# Field-split like the original unquoted echo, without globbing the message.
+	read -r -a words <<<"${1}"
+	echo "${words[*]}"
+	# The original call was unquoted, so the log file kept only the first field.
+	if [ "${#words[@]}" -gt 0 ]; then
+		log "${words[0]}"
+	else
+		log ""
+	fi
 }
 
 #=== FUNCTION =========================================================================
@@ -130,12 +138,10 @@ uninstall() {
 #======================================================================================
 prompt_git_identity_and_clone() {
 	echo -n "Please enter your windows ID:"
-	# shellcheck disable=SC2162 # Keep legacy read so Windows IDs with backslashes are unchanged.
-	read GITUSER
+	read -r GITUSER
 
 	echo -n "Please enter your intel email address:"
-	# shellcheck disable=SC2162 # Keep legacy read so email input is unchanged.
-	read GITEMAIL
+	read -r GITEMAIL
 
 	git config --global user.name "${GITUSER}"
 	git config --global user.email "${GITEMAIL}"
